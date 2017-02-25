@@ -25,7 +25,12 @@ class APIController extends FOSRestController
 
         $menus = $siteFetcher->getCurrentMenuFromSite();
 
-        $view = $this->view($menus, 200);
+        $data = [];
+        foreach ($menus as $menu) {
+          $data[] = $siteFetcher->getSelectionObject($menu);
+        }
+
+        $view = $this->view($data, 200);
         return $this->handleView($view);
     }
 }

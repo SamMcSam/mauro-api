@@ -32,7 +32,7 @@ class Selection
     /**
      * Get id
      *
-     * @return integer 
+     * @return integer
      */
     public function getId()
     {
@@ -55,10 +55,20 @@ class Selection
     /**
      * Get day
      *
-     * @return \DateTime 
+     * @return \DateTime
      */
     public function getDay()
     {
         return $this->day;
+    }
+
+    public static function generateFromArray($selectionArray)
+    {
+      // @todo
+      $selection = new Selection();
+
+      //day
+
+      // each item
     }
 }
