@@ -3,6 +3,9 @@
 namespace DataBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\EntityManager;
+use Doctrine\Common\Collections\ArrayCollection;
+use DataBundle\Util\Dow;
 
 /**
  * Selection
@@ -19,15 +22,33 @@ class Selection
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $id;
+    protected $id;
 
     /**
-     * @var \DateTime
+     * @var int
      *
-     * @ORM\Column(name="day", type="date")
+     * @ORM\Column(name="dow", type="integer")
      */
-    private $day;
+    protected $dow;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="Menu", inversedBy="selections")
+     * @ORM\JoinColumn(name="menu_id", referencedColumnName="id")
+     */
+    protected $menu;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="Dish")
+     * @ORM\JoinTable(name="selection_dishes",
+     *      joinColumns={@ORM\JoinColumn(name="selection_id", referencedColumnName="id")},
+     *      inverseJoinColumns={@ORM\JoinColumn(name="dish_id", referencedColumnName="id")}
+     *      )
+    */
+    protected $dishes;
+
+    public function __construct() {
+        $this->dishes = new ArrayCollection();
+    }
 
     /**
      * Get id
@@ -40,35 +61,80 @@ class Selection
     }
 
     /**
-     * Set day
+     * Setter day of the week
      *
-     * @param \DateTime $day
-     * @return Selection
+     * @var integer $dow
+     * @return this
      */
-    public function setDay($day)
+    public function setDow($dow)
     {
-        $this->day = $day;
-
+        $this->dow = $dow;
         return $this;
     }
 
     /**
-     * Get day
+     * Get day of the week
      *
-     * @return \DateTime
+     * @return integer
      */
-    public function getDay()
+    public function getDow()
     {
-        return $this->day;
+        return $this->dow;
     }
 
-    public static function generateFromArray($selectionArray)
+    public function addDish(Dish $dish)
+    {
+      $this->dishes->add($dish);
+      return $this;
+    }
+
+    public function getDishes()
+    {
+      return $this->dishes->toArray();
+    }
+
+    public function setMenu($menu)
+    {
+      $this->menu = $menu;
+      return $this;
+    }
+
+    /**
+    * @var EntityManager $em
+    * @var array $selectionArray
+    * @var boolean $persist
+    * @return Selection
+    */
+    public static function generateFromArray(EntityManager $em, $selectionArray, $persist = true)
     {
       // @todo
       $selection = new Selection();
 
       //day
+      $dayString = $selectionArray[0];
+      $dayString = strtolower(trim(trim($dayString, ":")));
+
+      $dow = Dow::$NAMEDAY_WEEK[$dayString];
+      $selection->setDow($dow);
 
       // each item
+      unset($selectionArray[0]);
+      $repo = $em->getRepository("DataBundle:Dish");
+      foreach ($selectionArray as $dishString) {
+        $dishObject = $repo->findOneByName($dishString);
+        if (is_null($dishObject)) {
+          $dishObject = new Dish($dishString);
+          if ($persist) {
+            $em->persist($dishObject);
+          }
+        }
+        $selection->addDish($dishObject);
+      }
+
+      if ($persist) {
+        $em->persist($selection);
+      }
+
+      return $selection;
     }
 }

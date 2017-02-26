@@ -21,16 +21,39 @@ class APIController extends FOSRestController
      */
     public function getMenuByWeekAction()
     {
-        $siteFetcher = $this->get("mauro.data.site_fetcher");
-
-        $menus = $siteFetcher->getCurrentMenuFromSite();
-
-        $data = [];
-        foreach ($menus as $menu) {
-          $data[] = $siteFetcher->getSelectionObject($menu);
-        }
+          //@todo DEBUG! do from bd 
+            $siteFetcher = $this->get("mauro.data.site_fetcher");
+            $data = $siteFetcher->saveThisWeeksMenu(false);
 
         $view = $this->view($data, 200);
+        return $this->handleView($view);
+    }
+
+    /**
+     * @Route("/selection/today")
+      * @ApiDoc(
+      *  description="Create a new Object",
+      *  input="Your\Namespace\Form\Type\YourType",
+      *  output="Your\Namespace\Class"
+      * )
+     */
+    public function getSelectionTodayAction()
+    {
+        $view = $this->view("", 200);
+        return $this->handleView($view);
+    }
+
+    /**
+     * @Route("/selection/tomorrow")
+      * @ApiDoc(
+      *  description="Create a new Object",
+      *  input="Your\Namespace\Form\Type\YourType",
+      *  output="Your\Namespace\Class"
+      * )
+     */
+    public function getSelectionTomorrowAction()
+    {
+        $view = $this->view("", 200);
         return $this->handleView($view);
     }
 }

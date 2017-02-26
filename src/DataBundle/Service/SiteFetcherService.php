@@ -7,6 +7,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Guzzle\Http\Client;
 use Symfony\Component\DomCrawler\Crawler;
 
+use DataBundle\Entity\Menu;
 use DataBundle\Entity\Selection;
 
 /**
@@ -16,18 +17,67 @@ class SiteFetcherService extends Controller
 {
   protected $url;
 
+  protected $em;
+
   protected $logger;
 
-  function __construct($url, $logger) {
+  protected $response;
+
+  function __construct($url, $em, $logger) {
     $this->url = $url;
+    $this->em = $em;
     $this->logger = $logger;
   }
 
-  function getCurrentMenuFromSite() {
+  public function getCurrentWeekFromSite($refresh = true) {
     try {
-      $client = new Client();
-      $request = $client->get($this->url);
-      $response = $request->send();
+      if ($refresh) {
+        $client = new Client();
+        $request = $client->get($this->url);
+        $this->response = $response = $request->send();
+      }
+
+      if (is_null($response)) {
+        throw new \Exception("No response given.");
+      }
+
+      $crawler = new Crawler((string)$response->getBody());
+
+      $title = $crawler
+        ->filter('td:first-child')
+      ;
+
+      $titleString = $title->text();
+
+      preg_match("#.*du .* au (.*)\r.*#", $titleString, $dates);
+
+      // @todo IntlDateFormatter not working??
+      $find = array('janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre');
+      $replace = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+      $day = new \DateTime(str_replace($find, $replace, strtolower($dates[1])));
+
+      $sunday = $day->sub(new \DateInterval('P'.$day->format('w').'D'));
+
+      return $sunday;
+    } catch (\Exception $e) {
+      return $e->getMessage();
+      $this->logger->critical("[SITEFETCHER-weekdate] : " . $e->getMessage());
+    }
+
+    return null;
+  }
+
+  public function getCurrentMenuFromSite($refresh = true) {
+    try {
+      if ($refresh) {
+        $client = new Client();
+        $request = $client->get($this->url);
+        $this->response = $response = $request->send();
+      }
+
+      if (is_null($response)) {
+        throw new \Exception("No response given.");
+      }
 
       $crawler = new Crawler((string)$response->getBody());
 
@@ -45,13 +95,13 @@ class SiteFetcherService extends Controller
 
       return $daySelections;
     } catch (\Exception $e) {
-      $this->logger->critical("[SITEFETCHER] : " . $e->getMessage());
+      $this->logger->critical("[SITEFETCHER-currentmenu] : " . $e->getMessage());
     }
 
     return null;
   }
 
-  function getSelectionObject($domElement) {
+  public function getSelectionObject($domElement, $persist = true) {
     try {
       $selectionArray = [];
 
@@ -63,11 +113,37 @@ class SiteFetcherService extends Controller
         }
       }
 
-      return Selection::generateFromArray($selectionArray);
+      return Selection::generateFromArray($this->em, $selectionArray, $persist);
     } catch (\Exception $e) {
       $this->logger->critical("[DOMELEMENT PARSER] : " . $e->getMessage());
     }
 
     return null;
+  }
+
+  public function saveThisWeeksMenu($flush = true)
+  {
+    $menus = $this->getCurrentMenuFromSite();
+    $sunday = $this->getCurrentWeekFromSite(false);
+
+    $objectArray = [];
+    foreach ($menus as $menu) {
+      $objectArray[] = $this->getSelectionObject($menu, true);
+    }
+
+return $objectArray;
+    $menu = new Menu();
+    $menu->setWeek($sunday);
+    $menu->addSelectionArray($objectArray);
+    $em->persist($menu);
+
+    if ($flush) {
+      $em->flush();
+    }
+
+    return [
+      "sunday" => $sunday,
+      "menu" => $menu,
+    ];
   }
 }

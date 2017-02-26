@@ -3,6 +3,7 @@
 namespace DataBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * Menu
@@ -19,20 +20,30 @@ class Menu
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $id;
+    protected $id;
 
     /**
      * @var \DateTime
      *
+     * Sunday Datetime
+     *
      * @ORM\Column(name="week", type="date")
      */
-    private $week;
+    protected $week;
 
+    /**
+     * @ORM\OneToMany(targetEntity="Selection", mappedBy="menu")
+     */
+    protected $selections;
+
+    public function __construct() {
+        $this->selections = new ArrayCollection();
+    }
 
     /**
      * Get id
      *
-     * @return integer 
+     * @return integer
      */
     public function getId()
     {
@@ -55,10 +66,18 @@ class Menu
     /**
      * Get week
      *
-     * @return \DateTime 
+     * @return \DateTime
      */
     public function getWeek()
     {
         return $this->week;
+    }
+
+    public function addSelectionArray($selectionArray)
+    {
+      foreach($selectionArray as $selection) {
+        $selection->setMenu($this);
+        $this->selections->add($selection);
+      }
     }
 }

@@ -19,20 +19,24 @@ class Dish
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $id;
+    protected $id;
 
     /**
      * @var string
      *
      * @ORM\Column(name="name", type="string", length=255)
      */
-    private $name;
+    protected $name;
 
+    public function __construct($name)
+    {
+      $this->name = $name;
+    }
 
     /**
      * Get id
      *
-     * @return integer 
+     * @return integer
      */
     public function getId()
     {
@@ -55,7 +59,7 @@ class Dish
     /**
      * Get name
      *
-     * @return string 
+     * @return string
      */
     public function getName()
     {
