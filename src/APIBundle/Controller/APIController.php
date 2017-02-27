@@ -5,6 +5,8 @@ namespace APIBundle\Controller;
 use FOS\RestBundle\Controller\FOSRestController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
+use FOS\RestBundle\Controller\Annotations as Rest;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @Route("/api")
@@ -12,48 +14,65 @@ use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 class APIController extends FOSRestController
 {
     /**
-     * @Route("/menu/week")
-      * @ApiDoc(
-      *  description="Create a new Object",
-      *  input="Your\Namespace\Form\Type\YourType",
-      *  output="Your\Namespace\Class"
-      * )
-     */
-    public function getMenuByWeekAction()
+     * @Rest\Get("/menu/week")
+     * @ApiDoc(
+     *  description="Gets the menu for a week (default this week)"
+     *)
+     *
+     * @Rest\QueryParam(
+     *  name="week",
+     *  requirements="[0-9]+",
+     *  nullable=true,
+     *  description="Negative index relative to this week. Ex : 1 is last week, 2 is two weeks ago, etc... Default (0) is this weeks"
+     * )
+    */
+    public function getMenuByWeekAction(Request $request)
     {
-          //@todo DEBUG! do from bd 
-            $siteFetcher = $this->get("mauro.data.site_fetcher");
-            $data = $siteFetcher->saveThisWeeksMenu(false);
+        if ($request->query->has('week')) {
+          $index = $request->query->get('week') * -1 + -1;
+        }
+        else {
+          $index = -1;
+        }
+
+        $lastSunday = new \DateTime();
+        $lastSunday->modify($index . ' Sunday');
+
+        $em = $this->get('doctrine.orm.entity_manager');
+        $repo = $em->getRepository("DataBundle:Menu");
+
+        $data = $repo->findOneByWeek($lastSunday);
 
         $view = $this->view($data, 200);
         return $this->handleView($view);
     }
 
     /**
-     * @Route("/selection/today")
-      * @ApiDoc(
-      *  description="Create a new Object",
-      *  input="Your\Namespace\Form\Type\YourType",
-      *  output="Your\Namespace\Class"
-      * )
-     */
-    public function getSelectionTodayAction()
+     * @Rest\Get("/selection/day")
+     * @ApiDoc(
+     *  description="Gets the selection for a day (default today)"
+     *)
+     *
+     * @Rest\QueryParam(
+     *  name="dow",
+     *  requirements="[0123456]",
+     *  nullable=true,
+     *  description="Day of the week index (default is current day)"
+     * )
+    */
+    public function getSelectionByDayAction(Request $request)
     {
-        $view = $this->view("", 200);
-        return $this->handleView($view);
-    }
+        $date = new \DateTime();
+        $dow = $date->format("w");
 
-    /**
-     * @Route("/selection/tomorrow")
-      * @ApiDoc(
-      *  description="Create a new Object",
-      *  input="Your\Namespace\Form\Type\YourType",
-      *  output="Your\Namespace\Class"
-      * )
-     */
-    public function getSelectionTomorrowAction()
-    {
-        $view = $this->view("", 200);
+        $lastSunday = $date->modify('-1 Sunday');
+
+        $em = $this->get('doctrine.orm.entity_manager');
+        $repo = $em->getRepository("DataBundle:Menu");
+
+        // @todo get from repo
+
+        $view = $this->view(null, 200);
         return $this->handleView($view);
     }
 }

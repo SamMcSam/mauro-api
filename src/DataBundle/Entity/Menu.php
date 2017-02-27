@@ -27,7 +27,7 @@ class Menu
      *
      * Sunday Datetime
      *
-     * @ORM\Column(name="week", type="date")
+     * @ORM\Column(name="week", type="datetime")
      */
     protected $week;
 

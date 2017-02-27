@@ -33,7 +33,7 @@ class Selection
 
     /**
      * @ORM\ManyToOne(targetEntity="Menu", inversedBy="selections")
-     * @ORM\JoinColumn(name="menu_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="menu_id", referencedColumnName="id", nullable=false)
      */
     protected $menu;
 

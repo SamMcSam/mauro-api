@@ -34,14 +34,14 @@ class SiteFetcherService extends Controller
       if ($refresh) {
         $client = new Client();
         $request = $client->get($this->url);
-        $this->response = $response = $request->send();
+        $this->response = $request->send();
       }
 
-      if (is_null($response)) {
+      if (is_null($this->response)) {
         throw new \Exception("No response given.");
       }
 
-      $crawler = new Crawler((string)$response->getBody());
+      $crawler = new Crawler((string)$this->response->getBody());
 
       $title = $crawler
         ->filter('td:first-child')
@@ -60,7 +60,6 @@ class SiteFetcherService extends Controller
 
       return $sunday;
     } catch (\Exception $e) {
-      return $e->getMessage();
       $this->logger->critical("[SITEFETCHER-weekdate] : " . $e->getMessage());
     }
 
@@ -72,14 +71,14 @@ class SiteFetcherService extends Controller
       if ($refresh) {
         $client = new Client();
         $request = $client->get($this->url);
-        $this->response = $response = $request->send();
+        $this->response = $request->send();
       }
 
-      if (is_null($response)) {
+      if (is_null($this->response)) {
         throw new \Exception("No response given.");
       }
 
-      $crawler = new Crawler((string)$response->getBody());
+      $crawler = new Crawler((string)$this->response->getBody());
 
       $tds = $crawler
         ->filter('td:not(:first-child):not(:last-child)')
@@ -131,14 +130,13 @@ class SiteFetcherService extends Controller
       $objectArray[] = $this->getSelectionObject($menu, true);
     }
 
-return $objectArray;
     $menu = new Menu();
     $menu->setWeek($sunday);
     $menu->addSelectionArray($objectArray);
-    $em->persist($menu);
+    $this->em->persist($menu);
 
     if ($flush) {
-      $em->flush();
+      $this->em->flush();
     }
 
     return [
