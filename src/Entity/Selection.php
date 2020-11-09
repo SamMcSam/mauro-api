@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Model\Dow;
 use App\Repository\SelectionRepository;
-use DataBundle\Entity\Dish;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -79,7 +78,7 @@ class Selection
     }
 
     /**
-     * @return \DataBundle\Entity\Selection
+     * @return Selection
      *@var array $selectionArray
      * @var boolean $persist
      * @var EntityManager $em
@@ -98,7 +97,7 @@ class Selection
 
         // each item
         unset($selectionArray[0]);
-        $repo = $em->getRepository("DataBundle:Dish");
+        $repo = $em->getRepository(Dish::class);
         foreach ($selectionArray as $dishString) {
             $dishObject = $repo->findOneByName($dishString);
             if (is_null($dishObject)) {
