@@ -1,4 +1,0 @@
-services:
-    mauro.data.site_fetcher:
-        class: DataBundle\Service\SiteFetcherService
-        arguments: ["%mauro_menu_url%", "@doctrine.orm.entity_manager", "@logger"]
