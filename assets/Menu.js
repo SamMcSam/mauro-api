@@ -1,10 +1,17 @@
 import React, {Component} from 'react';
 import axios from 'axios';
+import {LinkedCalendar} from 'rb-datepicker';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-daterangepicker/daterangepicker.css';
 
 class Menu extends Component {
     constructor() {
         super();
         this.state = { items: [], loading: true};
+    }
+
+    onDatesChange = ({ startDate, endDate }) => {
+        console.log(({ startDate, endDate }));
     }
 
     componentDidMount() {
@@ -24,7 +31,10 @@ class Menu extends Component {
                 <section className="row-section">
                     <div className="container">
                         <div className="row">
-                            <h2 className="text-center"><span>Current menu</span></h2>
+                            <h2 className="text-center">📆</h2>
+                        </div>
+                        <div className="row">
+                            {/*<LinkedCalendar onDatesChange={this.onDatesChange} showDropdowns={false} />*/}
                         </div>
                         {loading ? (
                             <div className={'row text-center'}>

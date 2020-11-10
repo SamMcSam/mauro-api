@@ -99,7 +99,28 @@ class APIController extends AbstractController
      */
     public function getStats(): Response
     {
-        $stats = []; // @todo
+        $stats = [
+            [
+                "id"=>0,
+                "name"=>"Sauté de veau",
+                "uses"=> 20,
+            ],
+            [
+                "id"=>0,
+                "name"=>"Spaghetti bolo",
+                "uses"=> 10,
+            ],
+            [
+                "id"=>1,
+                "name"=>"Arancini",
+                "uses"=> 9,
+            ],
+            [
+                "id"=>2,
+                "name"=>"Choux de bruxelles",
+                "uses"=> 8,
+            ]
+        ]; // @todo
 
         $response = new Response();
 
@@ -107,6 +128,28 @@ class APIController extends AbstractController
         $response->headers->set('Access-Control-Allow-Origin', '*');
 
         $response->setContent(json_encode($stats));
+
+        return $response;
+    }
+
+    /**
+     * @Route("/uses", name="uses_list")
+     */
+    public function getUses(): Response
+    {
+        $data = [
+            ["date" => "2020-11-13"],
+            ["date" => "2020-10-1"],
+            ["date" => "2020-9-10"],
+            ["date" => "2020-7-6"],
+        ]; // @todo
+
+        $response = new Response();
+
+        $response->headers->set('Content-Type', 'application/json');
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+
+        $response->setContent(json_encode($data));
 
         return $response;
     }
